@@ -14,6 +14,7 @@ setup(
   url = "https://github.com/sv-bfms/generic_sram_bfms",
   setup_requires=[
     'setuptools_scm',
+    'pybfms'
   ],
 )
 

@@ -4,7 +4,7 @@ Created on Feb 1, 2020
 @author: ballance
 '''
 
-import cocotb
+import pybfms
 from cocotb.decorators import bfm_uint32_t, bfm_uint64_t
 from cocotb.triggers import Lock, Event
 
