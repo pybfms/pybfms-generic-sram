@@ -5,12 +5,10 @@ Created on Feb 1, 2020
 '''
 
 import pybfms
-from cocotb.decorators import bfm_uint32_t, bfm_uint64_t
-from cocotb.triggers import Lock, Event
 
-@cocotb.bfm(hdl={
-    cocotb.bfm_sv : cocotb.bfm_hdl_path(__file__, "hdl/generic_sram_byte_en_dualport_target_bfm.sv"),
-    cocotb.bfm_vlog : cocotb.bfm_hdl_path(__file__, "hdl/generic_sram_byte_en_dualport_target_bfm.sv")
+@pybfms.bfm(hdl={
+    pybfms.BfmType.SystemVerilog : pybfms.bfm_hdl_path(__file__, "hdl/generic_sram_byte_en_dualport_target_bfm.sv"),
+    pybfms.BfmType.Verilog : pybfms.bfm_hdl_path(__file__, "hdl/generic_sram_byte_en_dualport_target_bfm.sv")
     }, has_init=True)
 class GenericSramByteEnDualportTargetBFM():
 
@@ -18,47 +16,51 @@ class GenericSramByteEnDualportTargetBFM():
         self.data_width = 0
         self.addr_width = 0
         self.endian = 0
-        self.lock = Lock()
-        self.ack_ev = Event()
+        self.lock = pybfms.lock()
+        self.ack_ev = pybfms.event()
+        self.read_data = None
         
-    @cocotb.bfm_export(bfm_uint32_t, bfm_uint32_t)
+    @pybfms.export_task(pybfms.uint32_t, pybfms.uint32_t)
     def set_parameters(self, data_width, addr_width):
         """Called to set parameter values at initialization"""
         self.data_width = data_width
         self.addr_width = addr_width
         
-    @cocotb.coroutinee
-    def read(self, addr):
-        yield self.lock.acquire()
-        yield self._read_req(addr)
+    async def read(self, addr):
+        await self.lock.acquire()
+        self._read_req(addr)
         
-        ret = yield self.ack_ev.wait()
+        await self.ack_ev.wait()
+        self.ack_ev.clear()
+        ret = self.read_data
         
         self.lock.release()
         
         return ret
     
-    @cocotb.coroutine
-    def write(self, addr, data, byte_en):
-        yield self.lock.acquire()
-        yield self._write_req(addr, data, byte_en)
+    async def write(self, addr, data, byte_en):
+        await self.lock.acquire()
+        self._write_req(addr, data, byte_en)
         
-        yield self.ack_ev.wait()
+        await self.ack_ev.wait()
         
         self.lock.release()
 
 
-    @cocotb.bfm_import(bfm_uint32_t)
+    @pybfms.import_task(pybfms.uint32_t)
     def _read_req(self, addr):
         pass
     
-    @cocotb.bfm_export(bfm_uint64_t)
+    @pybfms.export_task(pybfms.uint64_t)
     def _read_ack(self, data):
-        self.ack_ev.set(data)
+        self.read_data = data
+        self.ack_ev.set()
         
-
-    @cocotb.bfm_import(bfm_uint32_t,bfm_uint64_t,bfm_uint32_t)
+    @pybfms.import_task(pybfms.uint32_t, pybfms.uint64_t, pybfms.uint16_t)
+    def _write_req(self, addr, data, byte_en):
+        pass
     
-    
+    @pybfms.export_task()
+    def _write_ack(self):
+        self.ack_ev.set()
         
-    
