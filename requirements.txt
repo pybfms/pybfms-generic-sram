@@ -1,4 +1,4 @@
 
--e git+https://github.com/cocotb/cocotb.git#egg=cocotb
+cocotb
 -e git+http://github.com/mballance/vlsim.git#egg=vlsim
--e git+https://github.com/pybfms/pybfms.git#egg=pybfms
+pybfms

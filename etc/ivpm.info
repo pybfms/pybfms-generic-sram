@@ -4,6 +4,6 @@
 #* Name: generic-sram-bfms
 #****************************************************************************
 
-name=generic-sram-bfms
+name=generic_sram_bfms
 version=0.0.1
 

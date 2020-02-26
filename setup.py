@@ -2,8 +2,25 @@
 import os
 from setuptools import setup
 
+version=None
+with open(os.path.join(rootdir, "etc", "ivpm.info"), "r") as fp:
+    while True:
+        l = fp.readline()
+        if l == "":
+            break
+        if l.find("version=") != -1:
+            version=l[l.find("=")+1:].strip()
+            break
+
+if version is None:
+    raise Exception("Failed to find version in ivpm.info")
+
+if "BUILD_NUM" in os.environ.keys():
+    version += "." + os.environ["BUILD_NUM"]
+
 setup(
   name = "generic_sram_bfms",
+  version = version,
   packages=['generic_sram_bfms'],
   package_dir = {'' : 'src'},
   author = "Matthew Ballance",
