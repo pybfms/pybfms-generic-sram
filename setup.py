@@ -2,6 +2,8 @@
 import os
 from setuptools import setup
 
+rootdir = os.path.dirname(os.path.realpath(__file__))
+
 version=None
 with open(os.path.join(rootdir, "etc", "ivpm.info"), "r") as fp:
     while True:
