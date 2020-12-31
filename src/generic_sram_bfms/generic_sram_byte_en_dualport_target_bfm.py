@@ -19,12 +19,14 @@ class GenericSramByteEnDualportTargetBFM():
         self.lock = pybfms.lock()
         self.ack_ev = pybfms.event()
         self.read_data = None
+        self.mem = []
         
     @pybfms.export_task(pybfms.uint32_t, pybfms.uint32_t)
-    def set_parameters(self, data_width, addr_width):
+    def _set_parameters(self, data_width, addr_width):
         """Called to set parameter values at initialization"""
         self.data_width = data_width
         self.addr_width = addr_width
+        self.mem = [0]*(1 << addr_width)
         
     async def read(self, addr):
         await self.lock.acquire()
@@ -45,22 +47,45 @@ class GenericSramByteEnDualportTargetBFM():
         await self.ack_ev.wait()
         
         self.lock.release()
-
-
-    @pybfms.import_task(pybfms.uint32_t)
-    def _read_req(self, addr):
-        pass
-    
-    @pybfms.export_task(pybfms.uint64_t)
-    def _read_ack(self, data):
-        self.read_data = data
-        self.ack_ev.set()
         
-    @pybfms.import_task(pybfms.uint32_t, pybfms.uint64_t, pybfms.uint16_t)
-    def _write_req(self, addr, data, byte_en):
+    def write_nb(self, addr, data, byte_en):
+        # TODO:
+        self.mem[addr] = data
+
+    @pybfms.export_task(pybfms.uint32_t)
+    def _read_req_a(self, addr):
+        # TODO:
+        addr = addr % len(self.mem)
+        self._read_rsp_a(self.mem[addr])
+        
+    @pybfms.import_task(pybfms.uint64_t)
+    def _read_rsp_a(self, data):
         pass
     
-    @pybfms.export_task()
-    def _write_ack(self):
-        self.ack_ev.set()
+    @pybfms.export_task(pybfms.uint32_t, pybfms.uint64_t, pybfms.uint16_t)
+    def _write_req_a(self, addr, data, sel):
+        addr = addr % len(self.mem)
+        ex_data = self.mem[addr]
+        # TODO:
+        self.mem[addr] = ex_data
+        pass
+    
+    @pybfms.export_task(pybfms.uint32_t)
+    def _read_req_b(self, addr):
+        # TODO:
+        addr = addr % len(self.mem)
+        self._read_rsp_b(self.mem[addr])
+        
+    @pybfms.import_task(pybfms.uint64_t)
+    def _read_rsp_b(self, data):
+        pass
+    
+    @pybfms.export_task(pybfms.uint32_t, pybfms.uint64_t, pybfms.uint16_t)
+    def _write_req_b(self, addr, data, sel):
+        addr = addr % len(self.mem)
+        ex_data = self.mem[addr]
+        # TODO:
+        self.mem[addr] = ex_data
+        pass
+    
         

@@ -1,64 +1,52 @@
-
+/****************************************************************************
+ * generic_sram_byte_en_target_bfm.sv
+ * 
+ ****************************************************************************/
 
 module generic_sram_byte_en_target_bfm #(
-		parameter DATA_WIDTH		= 32,
-		parameter ADDRESS_WIDTH		= 8,
-		parameter INIT_FILE			= ""
+		parameter DAT_WIDTH		= 32,
+		parameter ADR_WIDTH		= 8
 		) (
-		input						i_clk,
-		output[DATA_WIDTH-1:0]		i_write_data,
-		input [ADDRESS_WIDTH-1:0]	i_address,
-		input [DATA_WIDTH/8-1:0]	i_byte_enable,
-		output[DATA_WIDTH-1:0]		o_read_data
+		input						clock,
+		output[DAT_WIDTH-1:0]		dat_w,
+		input [ADR_WIDTH-1:0]		adr,
+		input [DAT_WIDTH/8-1:0]		sel,
+		output[DAT_WIDTH-1:0]		dat_r
 		);
 
-	reg [DATA_WIDTH-1:0]    	mem  [0:2**ADDRESS_WIDTH-1];
-	reg [DATA_WIDTH-1:0]		read_data_r;
-	reg [ADDRESS_WIDTH-1:0]		address_r;
-	reg [DATA_WIDTH-1:0]		write_data_r;
-	reg 						write_enable_r;
-	reg [DATA_WIDTH/8-1:0]		byte_enable_r;
-	integer i;
+	reg[ADR_WIDTH-1:0]			last_adr = 0;
+	reg							last_adr_valid = 0;
+	reg[DAT_WIDTH-1:0]			dat_r_r = 0;
 	
-	assign o_read_data = read_data_r;
+	assign dat_r = dat_r_r;
 	
-	initial begin
-		if (INIT_FILE != "") begin
-			$display("Note: Initializing SRAM %m from %s", INIT_FILE);
-			$readmemh(INIT_FILE, mem);
+	always @(posedge clock) begin
+		if (adr != last_adr || !last_adr_valid) begin
+			_read_req(adr);
+			last_adr <= adr;
+			last_adr_valid <= 1'b1;
 		end
-	end	
-	
-	always @(posedge i_clk) begin
-		// read
-		address_r 		<= i_address;
-		write_data_r 	<= i_write_data;
-		write_enable_r	<= i_write_enable;
-		byte_enable_r	<= i_byte_enable;
-    
-		read_data_r <= mem[address_r];
-
-		// write
-		if (write_enable_r) begin
-			for (i=0;i<DATA_WIDTH/8;i=i+1) begin
-				mem[address_r][i*8+0] = byte_enable_r[i] ? write_data_r[i*8+0] : mem[address_r][i*8+0] ;
-				mem[address_r][i*8+1] = byte_enable_r[i] ? write_data_r[i*8+1] : mem[address_r][i*8+1] ;
-				mem[address_r][i*8+2] = byte_enable_r[i] ? write_data_r[i*8+2] : mem[address_r][i*8+2] ;
-				mem[address_r][i*8+3] = byte_enable_r[i] ? write_data_r[i*8+3] : mem[address_r][i*8+3] ;
-				mem[address_r][i*8+4] = byte_enable_r[i] ? write_data_r[i*8+4] : mem[address_r][i*8+4] ;
-				mem[address_r][i*8+5] = byte_enable_r[i] ? write_data_r[i*8+5] : mem[address_r][i*8+5] ;
-				mem[address_r][i*8+6] = byte_enable_r[i] ? write_data_r[i*8+6] : mem[address_r][i*8+6] ;
-				mem[address_r][i*8+7] = byte_enable_r[i] ? write_data_r[i*8+7] : mem[address_r][i*8+7] ;
-			end              
+		
+		if (|sel) begin
+			_write_req(adr, dat_w, sel);
 		end
-	end	
+	end
 	
-	task bfm_initialize();
-		$display("bfm_initialize");
-		set_parameters(DATA_WIDTH, ADDRESS_WIDTH);
+	task _read_rsp(input reg[63:0] dat);
+	begin
+		dat_r_r = dat;
+	end
+	endtask
+	
+	task init();
+	begin
+		$display("%m: generic_sram_byte_en_target_bfm");
+		_set_parameters(DATA_WIDTH, ADDRESS_WIDTH);
+	end
 	endtask
 	
 	// Auto-generated code to implement the BFM API
-${cocotb_bfm_api_impl}
-	
+`ifdef PYBFMS_GEN
+${pybfms_api_impl}
+`endif	
 endmodule
