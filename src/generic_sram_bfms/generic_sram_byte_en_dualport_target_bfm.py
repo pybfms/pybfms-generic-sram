@@ -24,6 +24,7 @@ class GenericSramByteEnDualportTargetBFM():
     @pybfms.export_task(pybfms.uint32_t, pybfms.uint32_t)
     def _set_parameters(self, data_width, addr_width):
         """Called to set parameter values at initialization"""
+        print("_set_parameters")
         self.data_width = data_width
         self.addr_width = addr_width
         self.mem = [0]*(1 << addr_width)
@@ -49,7 +50,8 @@ class GenericSramByteEnDualportTargetBFM():
         self.lock.release()
         
     def write_nb(self, addr, data, byte_en):
-        # TODO:
+        if addr >= len(self.mem):
+            raise Exception("Address " + hex(addr) + " outside memory " + hex(len(self.mem)))
         self.mem[addr] = data
 
     @pybfms.export_task(pybfms.uint32_t)

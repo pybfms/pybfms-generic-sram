@@ -23,7 +23,7 @@ module generic_sram_byte_en_dualport_target_bfm #(
 		);
 
 	reg[ADR_WIDTH-1:0]		a_adr_last = 0;
-	reg						a_adr_last_valid = 0;
+	reg[3:0]				a_adr_last_valid = 4'h0;
 	reg[DAT_WIDTH-1:0]		a_dat_r_v = {DAT_WIDTH{1'b0}};
 	
 	assign a_dat_r = a_dat_r_v;
@@ -32,9 +32,9 @@ module generic_sram_byte_en_dualport_target_bfm #(
 		if (a_we) begin
 			_write_req_a(a_adr, a_dat_w, a_sel);
 		end else begin
-			if ((a_adr_last != a_adr) || !a_adr_last_valid) begin
+			if ((a_adr_last !== a_adr) || (a_adr_last_valid != 'hf)) begin
 				a_adr_last <= a_adr;
-				a_adr_last_valid <= 1'b1;
+				a_adr_last_valid <= a_adr_last_valid + 1;
 				_read_req_a(a_adr);
 			end
 		end
@@ -50,7 +50,7 @@ module generic_sram_byte_en_dualport_target_bfm #(
 		if (b_we) begin
 			_write_req_b(b_adr, b_dat_w, b_sel);
 		end else begin
-			if ((b_adr_last != b_adr) || !b_adr_last_valid) begin
+			if ((b_adr_last !== b_adr) || !b_adr_last_valid) begin
 				b_adr_last <= b_adr;
 				b_adr_last_valid <= 1'b1;
 				_read_req_b(b_adr);
@@ -65,9 +65,11 @@ module generic_sram_byte_en_dualport_target_bfm #(
 	 * 
 	 * Parameters:
 	 */
-	task init();
+	task init;
+	begin
 		$display("%m: generic_sram_byte_en_dualport_target_bfm");
 		_set_parameters(DAT_WIDTH, ADR_WIDTH);
+	end
 	endtask
 
 	/**
@@ -76,7 +78,7 @@ module generic_sram_byte_en_dualport_target_bfm #(
 	 * Parameters:
 	 * - bit addr 
 	 */
-	task _read_rsp_a(reg[63:0] data);
+	task _read_rsp_a(input reg[63:0] data);
 	begin
 		a_dat_r_v = data;
 	end
@@ -86,7 +88,7 @@ module generic_sram_byte_en_dualport_target_bfm #(
 	 * Task: _read_rsp_b
 	 * 
 	 */
-	task _read_rsp_b(reg[63:0] data);
+	task _read_rsp_b(input reg[63:0] data);
 	begin
 		b_dat_r_v = data;
 	end

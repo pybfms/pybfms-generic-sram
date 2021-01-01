@@ -38,10 +38,10 @@ module generic_sram_byte_en_target_bfm #(
 	end
 	endtask
 	
-	task init();
+	task init;
 	begin
 		$display("%m: generic_sram_byte_en_target_bfm");
-		_set_parameters(DATA_WIDTH, ADDRESS_WIDTH);
+		_set_parameters(DAT_WIDTH, ADR_WIDTH);
 	end
 	endtask
 	

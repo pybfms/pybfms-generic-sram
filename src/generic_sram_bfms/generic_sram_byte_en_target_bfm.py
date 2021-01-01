@@ -4,7 +4,6 @@ Created on Feb 1, 2020
 @author: ballance
 '''
 
-import cocotb
 import pybfms
 
 @pybfms.bfm(hdl={
