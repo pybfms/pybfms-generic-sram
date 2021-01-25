@@ -26,35 +26,59 @@ module generic_sram_byte_en_dualport_target_bfm #(
 	reg[3:0]				a_adr_last_valid = 4'h0;
 	reg[DAT_WIDTH-1:0]		a_dat_r_v = {DAT_WIDTH{1'b0}};
 	
+	reg[ADR_WIDTH-1:0]		b_adr_last = 0;
+	reg						b_adr_last_valid = 0;
+	reg[DAT_WIDTH-1:0]		b_dat_r_v = {DAT_WIDTH{1'b0}};
+	
 	assign a_dat_r = a_dat_r_v;
 
 	always @(posedge clock) begin
 		if (a_we) begin
 			_write_req_a(a_adr, a_dat_w, a_sel);
-		end else begin
-			if ((a_adr_last !== a_adr) || (a_adr_last_valid != 'hf)) begin
-				a_adr_last <= a_adr;
-				a_adr_last_valid <= a_adr_last_valid + 1;
-				_read_req_a(a_adr);
+		end
+	end
+	
+	always @(posedge clock) begin
+		if (a_we) begin
+			if (a_adr_last == a_adr) begin
+				a_adr_last_valid <= 0;
+			end
+			if (b_adr_last == a_adr) begin
+				b_adr_last_valid <= 0;
+			end
+		end
+		if (b_we) begin
+			if (a_adr_last == b_adr) begin
+				a_adr_last_valid <= 0;
+			end
+			if (b_adr_last == b_adr) begin
+				b_adr_last_valid <= 0;
 			end
 		end
 	end
 	
-	reg[ADR_WIDTH-1:0]		b_adr_last = 0;
-	reg						b_adr_last_valid = 0;
-	reg[DAT_WIDTH-1:0]		b_dat_r_v = {DAT_WIDTH{1'b0}};
+	always @(negedge clock) begin
+		if ((a_adr_last !== a_adr) || (a_adr_last_valid != 'hf)) begin
+			a_adr_last <= a_adr;
+			a_adr_last_valid <= a_adr_last_valid + 1;
+			_read_req_a(a_adr);
+		end
+	end
+	
 	
 	assign b_dat_r = b_dat_r_v;
 
 	always @(posedge clock) begin
 		if (b_we) begin
 			_write_req_b(b_adr, b_dat_w, b_sel);
-		end else begin
-			if ((b_adr_last !== b_adr) || !b_adr_last_valid) begin
-				b_adr_last <= b_adr;
-				b_adr_last_valid <= 1'b1;
-				_read_req_b(b_adr);
-			end
+		end
+	end
+	
+	always @(negedge clock) begin
+		if ((b_adr_last !== b_adr) || !b_adr_last_valid) begin
+			b_adr_last <= b_adr;
+			b_adr_last_valid <= 1'b1;
+			_read_req_b(b_adr);
 		end
 	end
 	
