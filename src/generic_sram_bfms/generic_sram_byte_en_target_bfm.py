@@ -59,6 +59,7 @@ class GenericSramByteEnTargetBFM(object):
     @pybfms.export_task(pybfms.uint32_t, pybfms.uint32_t)
     def _set_parameters(self, dat_width, adr_width):
         """Called to set parameter values at initialization"""
+        print("_set_parameters: " + str(dat_width) + " " + str(adr_width))
         self.dat_width = dat_width
         self.adr_width = adr_width
         self.mem = [0]*(1 << adr_width)

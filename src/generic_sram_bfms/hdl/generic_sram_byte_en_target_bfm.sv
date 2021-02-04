@@ -11,15 +11,15 @@ module generic_sram_byte_en_target_bfm #(
 		input [ADR_WIDTH-1:0]		adr,
 		input						we,
 		input [DAT_WIDTH/8-1:0]		sel,
-		output[DAT_WIDTH-1:0]		dat_r,
+		output reg[DAT_WIDTH-1:0]	dat_r,
 		input[DAT_WIDTH-1:0]		dat_w
 		);
 
 	reg[ADR_WIDTH-1:0]		adr_last = 0;
 	reg[3:0]				adr_last_valid = 4'h0;
 	reg[DAT_WIDTH-1:0]		dat_r_v = {DAT_WIDTH{1'b0}};
-	
-	assign dat_r = dat_r_v;
+
+//	always @* dat_r = dat_r_v;
 
 	always @(posedge clock) begin
 		if (we) begin
@@ -37,11 +37,12 @@ module generic_sram_byte_en_target_bfm #(
 	
 	always @(negedge clock) begin
 		if (!we) begin
-			if ((adr_last !== adr) || (adr_last_valid != 'h4)) begin
+			if ((adr_last !== adr) || (adr_last_valid != 'h10)) begin
 				adr_last <= adr;
 				_read_req(adr);
 			end
 		end
+		dat_r <= dat_r_v;
 	end
 	
 	always @(posedge clock) begin
