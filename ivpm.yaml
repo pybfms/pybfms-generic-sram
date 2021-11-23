@@ -1,0 +1,23 @@
+package:
+    name: generic_sram_bfms
+    version: 0.0.1
+    deps:
+        - name: cocotb
+          type: python
+          src: pypi
+        - name: vlsim
+          url: http://github.com/mballance/vlsim.git
+          type: python
+        - name: pybfms
+          type: python
+          src: pypi
+    dev-deps:
+        - name: cocotb
+          url: https://github.com/cocotb/cocotb.git
+          type: python
+        - name: vlsim
+          url: http://github.com/mballance/vlsim.git
+          type: python
+        - name: pybfms
+          url: https://github.com/pybfms/pybfms.git
+          type: python
